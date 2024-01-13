@@ -1,7 +1,7 @@
 import requests
 
 def query_openai(text):
-    api_key = 'Bearer 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'
+    api_key = 'Bearer key'
     headers = {
         'Authorization': api_key,
         'Content-Type': 'application/json'
@@ -21,29 +21,18 @@ def query_openai(text):
     else:
         return f"Error: {response.text}"
 
-def split_text(file_content, max_length):
+def split_text(file_content, max_length=800):  # Adjusted max_length
     words = file_content.split()
     current_length = 0
     current_text = ""
     for word in words:
-        current_length += len(word) + 1
-        if current_length > max_length:
+        word_length = len(word) + 1  # Adding 1 for the space or newline character
+        if current_length + word_length > max_length:
             yield current_text.strip()
-            current_text = word
-            current_length = len(word)
+            current_text = word + ' '  # Start the new text chunk with the current word
+            current_length = word_length
         else:
-            current_text += " " + word
-    yield current_text.strip()
-
-user_input = input("请输入您的问题: ")
-
-with open('douban_top250.txt', 'r', encoding='utf-8') as file:
-    file_content = file.read()
-
-combined_content = user_input + "\n\n" + file_content
-max_length = 1000
-
-for text_segment in split_text(combined_content, max_length):
-    result = query_openai(text_segment)
-    print(result)
-    break
+            current_text += word + ' '
+            current_length += word_length
+    if current_text:
+        yield current_text.strip()  # Yield the last chunk of text
